@@ -52,7 +52,7 @@ void SCH_Update(void){
 		}
 	}
 }
-uint32_t SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
+void SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 	uint8_t newTaskIndex = 0;
 	uint32_t sumDelay = 0;
 	uint32_t newDelay = 0;
@@ -63,14 +63,11 @@ uint32_t SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 			newDelay = DELAY - (sumDelay - SCH_tasks_G[newTaskIndex].Delay);
 			SCH_tasks_G[newTaskIndex].Delay = sumDelay - DELAY;
 			for(uint8_t i = SCH_MAX_TASKS - 1; i > newTaskIndex; i --){
-//				if(SCH_tasks_G[i - 1].pTask != 0)
-				{
-					SCH_tasks_G[i].pTask = SCH_tasks_G[i - 1].pTask;
-					SCH_tasks_G[i].Period = SCH_tasks_G[i - 1].Period;
-					SCH_tasks_G[i].Delay = SCH_tasks_G[i - 1].Delay;
-//					SCH_tasks_G[i].RunMe = SCH_tasks_G[i - 1].RunMe;
-					SCH_tasks_G[i].TaskID = SCH_tasks_G[i - 1].TaskID;
-				}
+				SCH_tasks_G[i].pTask = SCH_tasks_G[i - 1].pTask;
+				SCH_tasks_G[i].Period = SCH_tasks_G[i - 1].Period;
+				SCH_tasks_G[i].Delay = SCH_tasks_G[i - 1].Delay;
+				SCH_tasks_G[i].TaskID = SCH_tasks_G[i - 1].TaskID;
+				
 			}
 			SCH_tasks_G[newTaskIndex].pTask = pFunction;
 			SCH_tasks_G[newTaskIndex].Delay = newDelay;
@@ -81,7 +78,7 @@ uint32_t SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 				SCH_tasks_G[newTaskIndex].RunMe = 0;
 			}
 			SCH_tasks_G[newTaskIndex].TaskID = Get_New_Task_ID();
-			return SCH_tasks_G[newTaskIndex].TaskID;
+
 		} else {
 			if(SCH_tasks_G[newTaskIndex].pTask == 0x0000){
 				SCH_tasks_G[newTaskIndex].pTask = pFunction;
@@ -93,15 +90,15 @@ uint32_t SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 					SCH_tasks_G[newTaskIndex].RunMe = 0;
 				}
 				SCH_tasks_G[newTaskIndex].TaskID = Get_New_Task_ID();
-				return SCH_tasks_G[newTaskIndex].TaskID;
+
 			}
 		}
 	}
-	return SCH_tasks_G[newTaskIndex].TaskID;
+
 }
 
 
-uint8_t SCH_Delete_Task(uint32_t taskID){
+void SCH_Delete_Task(uint32_t taskID){
 	uint8_t Return_code  = 0;
 	uint8_t taskIndex;
 	uint8_t j;
@@ -127,11 +124,9 @@ uint8_t SCH_Delete_Task(uint32_t taskID){
 				SCH_tasks_G[j].Delay = 0;
 				SCH_tasks_G[j].RunMe = 0;
 				SCH_tasks_G[j].TaskID = 0;
-				return Return_code;
 			}
 		}
 	}
-	return Return_code; // return status
 }
 
 void SCH_Dispatch_Tasks(void){
@@ -145,9 +140,6 @@ void SCH_Dispatch_Tasks(void){
 		}
 	}
 }
-
-// Init TIMER 10ms
-
 
 static uint32_t Get_New_Task_ID(void){
 	newTaskID++;
