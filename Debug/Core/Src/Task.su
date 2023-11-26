@@ -1,0 +1,5 @@
+Task.c:11:6:led_red	8	static
+Task.c:15:6:led_green	8	static
+Task.c:19:6:led_orange	8	static
+Task.c:23:6:led_aqua	8	static
+Task.c:27:6:led_pink	8	static
