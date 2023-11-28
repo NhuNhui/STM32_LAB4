@@ -95,11 +95,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  SCH_Add_Task(led_red, 50, 100);
-  SCH_Add_Task(led_green, 100, 100);
-  SCH_Add_Task(led_orange, 150,100);
-  SCH_Add_Task(led_aqua,200, 100);
-  SCH_Add_Task(led_pink, 250,100);
+  SCH_Add_Task(led_red, 50, 50);
+  SCH_Add_Task(led_green, 50, 100);
+  SCH_Add_Task(led_orange, 50,150);
+  SCH_Add_Task(led_aqua,50, 200);
+  SCH_Add_Task(led_pink,50,250);
 
   while (1)
   {

@@ -12,12 +12,8 @@
 extern "C" {
 #endif
 
-#define INTERRUPT_CYCLE			10 // 10 milliseconds
-#define PRESCALER				64
-#define COUNTER_START 			65536 - INTERRUPT_CYCLE * 1000 * 16 / 64	// 16M is Core Clock
-
 typedef struct {
-	void ( * pTask)(void);
+	void (*pTask)(void);
 	uint32_t Delay;
 	uint32_t Period;
 	uint8_t RunMe;
@@ -26,13 +22,8 @@ typedef struct {
 
 // The array of tasks
 static sTask SCH_tasks_G[SCH_MAX_TASKS];
-
 static uint32_t newTaskID = 0;
 
-static uint32_t count_SCH_Update = 0;
-
-
-static uint32_t Get_New_Task_ID(void);
 
 
 
@@ -40,9 +31,8 @@ static uint32_t Get_New_Task_ID(void);
 //	TIMER_Init();
 //}
 
+
 void SCH_Update(void){
-	// Check if there is a task at this location
-	count_SCH_Update ++;
 	if (SCH_tasks_G[0].pTask && SCH_tasks_G[0].RunMe == 0) {
 		if(SCH_tasks_G[0].Delay > 0){
 			SCH_tasks_G[0].Delay = SCH_tasks_G[0].Delay - 1;
@@ -52,7 +42,16 @@ void SCH_Update(void){
 		}
 	}
 }
-void SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
+
+static uint32_t Get_New_Task_ID(void){
+	newTaskID++;
+	if(newTaskID == NO_TASK_ID){
+		newTaskID++;
+	}
+	return newTaskID;
+}
+
+uint32_t SCH_Add_Task(void(*pFunction)(),uint32_t DELAY,uint32_t PERIOD){
 	uint8_t newTaskIndex = 0;
 	uint32_t sumDelay = 0;
 	uint32_t newDelay = 0;
@@ -67,7 +66,6 @@ void SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 				SCH_tasks_G[i].Period = SCH_tasks_G[i - 1].Period;
 				SCH_tasks_G[i].Delay = SCH_tasks_G[i - 1].Delay;
 				SCH_tasks_G[i].TaskID = SCH_tasks_G[i - 1].TaskID;
-				
 			}
 			SCH_tasks_G[newTaskIndex].pTask = pFunction;
 			SCH_tasks_G[newTaskIndex].Delay = newDelay;
@@ -78,7 +76,7 @@ void SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 				SCH_tasks_G[newTaskIndex].RunMe = 0;
 			}
 			SCH_tasks_G[newTaskIndex].TaskID = Get_New_Task_ID();
-
+			return SCH_tasks_G[newTaskIndex].TaskID;
 		} else {
 			if(SCH_tasks_G[newTaskIndex].pTask == 0x0000){
 				SCH_tasks_G[newTaskIndex].pTask = pFunction;
@@ -90,15 +88,15 @@ void SCH_Add_Task(void (* pFunction)(), uint32_t DELAY, uint32_t PERIOD){
 					SCH_tasks_G[newTaskIndex].RunMe = 0;
 				}
 				SCH_tasks_G[newTaskIndex].TaskID = Get_New_Task_ID();
-
+				return SCH_tasks_G[newTaskIndex].TaskID;
 			}
 		}
 	}
-
+	return SCH_tasks_G[newTaskIndex].TaskID;
 }
 
 
-void SCH_Delete_Task(uint32_t taskID){
+uint8_t SCH_Delete_Task(uint32_t taskID){
 	uint8_t Return_code  = 0;
 	uint8_t taskIndex;
 	uint8_t j;
@@ -124,15 +122,17 @@ void SCH_Delete_Task(uint32_t taskID){
 				SCH_tasks_G[j].Delay = 0;
 				SCH_tasks_G[j].RunMe = 0;
 				SCH_tasks_G[j].TaskID = 0;
+				return Return_code;
 			}
 		}
 	}
+	return Return_code;
 }
 
 void SCH_Dispatch_Tasks(void){
 	if(SCH_tasks_G[0].RunMe > 0) {
-		(*SCH_tasks_G[0].pTask)(); // Run the task
-		SCH_tasks_G[0].RunMe = 0; // Reset / reduce RunMe flag
+		(*SCH_tasks_G[0].pTask)(); 
+		SCH_tasks_G[0].RunMe = 0;
 		sTask temtask = SCH_tasks_G[0];
 		SCH_Delete_Task(temtask.TaskID);
 		if (temtask.Period != 0) {
@@ -141,13 +141,7 @@ void SCH_Dispatch_Tasks(void){
 	}
 }
 
-static uint32_t Get_New_Task_ID(void){
-	newTaskID++;
-	if(newTaskID == NO_TASK_ID){
-		newTaskID++;
-	}
-	return newTaskID;
-}
+
 
 #ifdef __cplusplus
 }
